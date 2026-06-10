@@ -1,311 +1,341 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleep & Speak - 1文集中音読アプリ</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        .mask-text {
-            background-color: #1f2937;
-            color: #1f2937;
-            padding: 0 4px;
-            border-radius: 4px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        .mask-text:hover {
-            background-color: transparent;
-            color: inherit;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sleep & Speak - 1文ずつ音読練習</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    .mask-text {
+      background-color: #1f2937;
+      color: #1f2937;
+      padding: 0 4px;
+      border-radius: 4px;
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+    .mask-text:hover,
+    .mask-text:active,
+    .mask-text.revealed {
+      background-color: transparent;
+      color: inherit;
+    }
+    input[type="range"] { accent-color: #4f46e5; }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center py-10 px-4">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center py-6 px-4">
+  <div class="max-w-3xl w-full bg-white shadow-xl rounded-2xl p-5 md:p-8 border border-slate-100">
+    <header class="text-center mb-5">
+      <h1 class="text-3xl font-extrabold text-indigo-600 mb-2">📢 Sleep & Speak</h1>
+      <p class="text-slate-500 text-sm">Lesson 3 Part 1：1画面で1文ずつ音読練習</p>
+    </header>
 
-    <div class="max-w-2xl w-full bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-slate-100">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-indigo-600 mb-2">📢 Sleep & Speak</h1>
-            <p class="text-slate-500 text-sm">Part 1: 1文ずつ音読マスタートレーニング</p>
-        </header>
-
-        <div class="flex justify-between items-center mb-4 px-2">
-            <span id="progress-text" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Sentence: 1 / 11</span>
-            <div class="flex space-x-1">
-                <button id="btn-prev" onclick="prevSentence()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition">◀ 前へ</button>
-                <button id="btn-next" onclick="nextSentence()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-lg text-xs font-bold transition">次へ ▶</button>
-            </div>
-        </div>
-
-        <div class="flex justify-center space-x-2 mb-6 bg-slate-100 p-1 rounded-xl">
-            <button id="btn-normal" onclick="switchMode('normal')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-white shadow-sm text-indigo-600 transition">Normal</button>
-            <button id="btn-slash" onclick="switchMode('slash')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition">Slash</button>
-            <button id="btn-mask" onclick="switchMode('mask')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition">Mask</button>
-        </div>
-
-        <div class="bg-slate-900 text-slate-100 p-8 rounded-xl mb-6 shadow-inner select-none min-h-[160px] flex flex-col justify-center items-center text-center">
-            <div id="text-display" class="text-xl md:text-2xl font-semibold leading-relaxed w-full">
-                </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-indigo-50 p-4 rounded-xl flex flex-col items-center justify-center border border-indigo-100">
-                <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">1. Listen (手本を聴く)</span>
-                <div class="flex space-x-2">
-                    <button onclick="playTTS()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition flex items-center">
-                        ▶ 再生
-                    </button>
-                    <button onclick="stopTTS()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-semibold transition">
-                        ■ 停止
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-rose-50 p-4 rounded-xl flex flex-col items-center justify-center border border-rose-100">
-                <span class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">2. Record (自分の声)</span>
-                <div class="flex space-x-2">
-                    <button id="btn-record" onclick="toggleRecording()" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition">
-                        ● 録音
-                    </button>
-                    <button id="btn-play-record" onclick="playRecordedAudio()" disabled class="bg-slate-200 text-slate-400 px-3 py-2 rounded-lg text-sm font-semibold transition cursor-not-allowed">
-                        再生
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">
-            <p class="font-bold mb-1">💡 Hint</p>
-            <p id="mode-hint">【Normal】まずは自分のペースで、音の繋がりを意識して読んでみましょう。</p>
-        </div>
+    <div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-4">
+      <span id="progress-text" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-2 rounded-full text-center">Sentence: 1 / 11</span>
+      <div class="flex gap-2 justify-center">
+        <button id="btn-prev" onclick="prevSentence()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold transition">◀ 前へ</button>
+        <button id="btn-next" onclick="nextSentence()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition">次へ ▶</button>
+      </div>
     </div>
 
-    <script>
-        const sentences = [
-            {
-                normal: "Mr. Jones talks to the class about the importance of having enough sleep.",
-                slash: "Mr. Jones talks to the class / about the importance / of having enough sleep.",
-                mask: "Mr. Jones <span class='mask-text'>talks to the class</span> about the importance of having <span class='mask-text'>enough sleep</span>."
-            },
-            {
-                normal: "Do you get enough sleep?",
-                slash: "Do you get enough sleep?",
-                mask: "Do you <span class='mask-text'>get enough sleep?</span>"
-            },
-            {
-                normal: "Many studies have suggested that people need approximately seven or eight hours of sleep a night.",
-                slash: "Many studies have suggested / that people need / approximately seven or eight hours / of sleep a night.",
-                mask: "Many <span class='mask-text'>studies have suggested</span> that people need approximately <span class='mask-text'>seven or eight hours</span> of sleep a night."
-            },
-            {
-                normal: "However, about 40% of Japanese adults sleep for less than six hours.",
-                slash: "However, / about 40% of Japanese adults / sleep for less than six hours.",
-                mask: "However, about <span class='mask-text'>40% of Japanese adults</span> sleep for <span class='mask-text'>less than six hours</span>."
-            },
-            {
-                normal: "In addition, the average sleeping time for youngsters has decreased in recent years.",
-                slash: "In addition, / the average sleeping time for youngsters / has decreased in recent years.",
-                mask: "In addition, the <span class='mask-text'>average sleeping time</span> for youngsters has <span class='mask-text'>decreased in recent years</span>."
-            },
-            {
-                normal: "Lack of sleep causes decreased concentration and performance during the daytime.",
-                slash: "Lack of sleep causes / decreased concentration and performance / during the daytime.",
-                mask: "Lack of sleep causes <span class='mask-text'>decreased concentration</span> and performance <span class='mask-text'>during the daytime</span>."
-            },
-            {
-                normal: "According to one estimate, if everyone slept for at least seven hours, Japan’s GDP would increase by 2.9%.",
-                slash: "According to one estimate, / if everyone slept / for at least seven hours, / Japan’s GDP would increase / by 2.9%.",
-                mask: "According to <span class='mask-text'>one estimate</span>, if everyone slept for <span class='mask-text'>at least seven hours</span>, Japan’s GDP would increase by 2.9%."
-            },
-            {
-                normal: "This amounts to 15 trillion yen in a year.",
-                slash: "This amounts to / 15 trillion yen in a year.",
-                mask: "This <span class='mask-text'>amounts to</span> 15 trillion yen <span class='mask-text'>in a year</span>."
-            },
-            {
-                normal: "You may think it will not matter if you sleep for just one hour less than you need each night.",
-                slash: "You may think / it will not matter / if you sleep for just one hour less / than you need each night.",
-                mask: "You may think it <span class='mask-text'>will not matter</span> if you sleep for just <span class='mask-text'>one hour less</span> than you need each night."
-            },
-            {
-                normal: "However, if you continue to do so for 30 days, you will lose a total of 30 hours of sleep.",
-                slash: "However, / if you continue to do so / for 30 days, / you will lose / a total of 30 hours of sleep.",
-                mask: "However, if you <span class='mask-text'>continue to do so</span> for 30 days, you will lose a total of <span class='mask-text'>30 hours of sleep</span>."
-            },
-            {
-                normal: "This loss is called “sleep debt.”",
-                slash: "This loss / is called “sleep debt.”",
-                mask: "This loss is <span class='mask-text'>called “sleep debt.”</span>"
-            }
-        ];
+    <div class="flex justify-center gap-2 mb-5 bg-slate-100 p-1 rounded-xl">
+      <button id="btn-normal" onclick="switchMode('normal')" class="flex-1 py-2 text-sm font-medium rounded-lg bg-white shadow-sm text-indigo-600 transition">Normal</button>
+      <button id="btn-slash" onclick="switchMode('slash')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition">Slash</button>
+      <button id="btn-mask" onclick="switchMode('mask')" class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition">Mask</button>
+    </div>
 
-        const hints = {
-            normal: "【Normal】まずは自分のペースで、音の繋がりを意識して読んでみましょう。",
-            slash: "【Slash】/（区切り）ごとに意味のカタマリを意識し、少しだけ息継ぎをしながらリズム良く読んでみましょう。",
-            mask: "【Mask】黒塗りの部分はマウスを乗せる（スマホはタップ）と表示されます。記憶を頼りに発話する「ルックアップ＆セイ」に挑戦！"
+    <section class="bg-slate-900 text-slate-100 p-7 md:p-10 rounded-xl mb-5 shadow-inner select-none min-h-[210px] flex flex-col justify-center items-center text-center">
+      <div class="text-xs tracking-widest text-slate-400 mb-3">CURRENT SENTENCE</div>
+      <div id="text-display" class="text-2xl md:text-3xl font-semibold leading-relaxed w-full"></div>
+    </section>
+
+    <section class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-5">
+      <div class="flex flex-col md:flex-row md:items-center gap-4">
+        <div class="flex gap-2 justify-center md:justify-start">
+          <button onclick="playTTS()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg text-sm font-semibold shadow transition">▶ 手本を聞く</button>
+          <button onclick="stopTTS()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-3 rounded-lg text-sm font-semibold transition">■ 停止</button>
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between items-center mb-1">
+            <label for="speed-range" class="text-sm font-bold text-indigo-700">読み上げスピード</label>
+            <span id="speed-label" class="text-sm font-bold text-indigo-700">0.85x</span>
+          </div>
+          <input id="speed-range" type="range" min="0.5" max="1.3" step="0.05" value="0.85" oninput="updateSpeedLabel()" class="w-full" />
+          <div class="flex justify-between text-xs text-slate-500 mt-1">
+            <span>ゆっくり</span><span>ふつう</span><span>速め</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+      <div class="bg-rose-50 p-4 rounded-xl flex flex-col items-center justify-center border border-rose-100">
+        <span class="text-xs font-bold text-rose-400 uppercase tracking-wider mb-2">Record 自分の声</span>
+        <div class="flex gap-2">
+          <button id="btn-record" onclick="toggleRecording()" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition">● 録音</button>
+          <button id="btn-play-record" onclick="playRecordedAudio()" disabled class="bg-slate-200 text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold transition cursor-not-allowed">再生</button>
+        </div>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">
+        <p class="font-bold mb-1">💡 Hint</p>
+        <p id="mode-hint">【Normal】まずは1文だけに集中して音読しましょう。</p>
+      </div>
+    </section>
+
+    <div class="text-center text-xs text-slate-400">
+      iPadでは、最初に「手本を聞く」を1回押すと音声が有効になります。マイクを使う場合は「許可」を押してください。
+    </div>
+  </div>
+
+  <script>
+    const sentences = [
+      {
+        normal: "Mr. Jones talks to the class about the importance of having enough sleep.",
+        slash: "Mr. Jones talks to the class / about the importance / of having enough sleep.",
+        mask: "Mr. Jones <span class='mask-text'>talks to the class</span> about the importance of having <span class='mask-text'>enough sleep</span>."
+      },
+      {
+        normal: "Do you get enough sleep?",
+        slash: "Do you get enough sleep?",
+        mask: "Do you <span class='mask-text'>get enough sleep?</span>"
+      },
+      {
+        normal: "Many studies have suggested that people need approximately seven or eight hours of sleep a night.",
+        slash: "Many studies have suggested / that people need / approximately seven or eight hours / of sleep a night.",
+        mask: "Many <span class='mask-text'>studies have suggested</span> that people need approximately <span class='mask-text'>seven or eight hours</span> of sleep a night."
+      },
+      {
+        normal: "However, about 40% of Japanese adults sleep for less than six hours.",
+        slash: "However, / about 40% of Japanese adults / sleep for less than six hours.",
+        mask: "However, about <span class='mask-text'>40% of Japanese adults</span> sleep for <span class='mask-text'>less than six hours</span>."
+      },
+      {
+        normal: "In addition, the average sleeping time for youngsters has decreased in recent years.",
+        slash: "In addition, / the average sleeping time for youngsters / has decreased in recent years.",
+        mask: "In addition, the <span class='mask-text'>average sleeping time</span> for youngsters has <span class='mask-text'>decreased in recent years</span>."
+      },
+      {
+        normal: "Lack of sleep causes decreased concentration and performance during the daytime.",
+        slash: "Lack of sleep causes / decreased concentration and performance / during the daytime.",
+        mask: "Lack of sleep causes <span class='mask-text'>decreased concentration</span> and performance <span class='mask-text'>during the daytime</span>."
+      },
+      {
+        normal: "According to one estimate, if everyone slept for at least seven hours, Japan’s GDP would increase by 2.9%.",
+        slash: "According to one estimate, / if everyone slept / for at least seven hours, / Japan’s GDP would increase / by 2.9%.",
+        mask: "According to <span class='mask-text'>one estimate</span>, if everyone slept for <span class='mask-text'>at least seven hours</span>, Japan’s GDP would increase by 2.9%."
+      },
+      {
+        normal: "This amounts to 15 trillion yen in a year.",
+        slash: "This amounts to / 15 trillion yen in a year.",
+        mask: "This <span class='mask-text'>amounts to</span> 15 trillion yen <span class='mask-text'>in a year</span>."
+      },
+      {
+        normal: "You may think it will not matter if you sleep for just one hour less than you need each night.",
+        slash: "You may think / it will not matter / if you sleep for just one hour less / than you need each night.",
+        mask: "You may think it <span class='mask-text'>will not matter</span> if you sleep for just <span class='mask-text'>one hour less</span> than you need each night."
+      },
+      {
+        normal: "However, if you continue to do so for 30 days, you will lose a total of 30 hours of sleep.",
+        slash: "However, / if you continue to do so / for 30 days, / you will lose / a total of 30 hours of sleep.",
+        mask: "However, if you <span class='mask-text'>continue to do so</span> for 30 days, you will lose a total of <span class='mask-text'>30 hours of sleep</span>."
+      },
+      {
+        normal: "This loss is called “sleep debt.”",
+        slash: "This loss / is called “sleep debt.”",
+        mask: "This loss is <span class='mask-text'>called “sleep debt.”</span>"
+      }
+    ];
+
+    const hints = {
+      normal: "【Normal】まずは1文だけに集中して音読しましょう。手本を聞いたあと、同じリズムで読みます。",
+      slash: "【Slash】/（区切り）ごとに意味のカタマリを意識して読みましょう。",
+      mask: "【Mask】黒塗りの部分はマウスを乗せる、またはタップすると表示されます。見ないで言えるか挑戦しましょう。"
+    };
+
+    let currentIndex = 0;
+    let currentMode = 'normal';
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioUrl = null;
+    let voicesLoaded = false;
+
+    window.onload = () => {
+      updateDisplay();
+      updateSpeedLabel();
+      loadVoices();
+      if ('speechSynthesis' in window) {
+        speechSynthesis.onvoiceschanged = () => {
+          voicesLoaded = true;
+          loadVoices();
         };
+      }
+    };
 
-        let currentIndex = 0;
-        let currentMode = 'normal';
-        let mediaRecorder;
-        let audioChunks = [];
-        let audioBlob;
-        let audioUrl;
-        let englishVoice = null;
-        let hasWarmedUpSpeech = false;
+    function loadVoices() {
+      if (!('speechSynthesis' in window)) return [];
+      const voices = speechSynthesis.getVoices();
+      if (voices.length > 0) voicesLoaded = true;
+      return voices;
+    }
 
-        window.onload = () => {
-            updateDisplay();
-            refreshVoices();
+    function chooseEnglishVoice() {
+      const voices = loadVoices();
+      return voices.find(v => v.lang === 'en-US' && /Google|Samantha|Alex|Microsoft/i.test(v.name)) ||
+             voices.find(v => v.lang === 'en-US') ||
+             voices.find(v => v.lang && v.lang.startsWith('en')) ||
+             null;
+    }
 
-            // iPad / Safari / Chrome では音声リストが遅れて読み込まれることがあります。
-            if (typeof speechSynthesis !== 'undefined') {
-                speechSynthesis.onvoiceschanged = refreshVoices;
-            }
-        };
+    function updateDisplay() {
+      const display = document.getElementById('text-display');
+      display.innerHTML = sentences[currentIndex][currentMode];
 
-        // 利用可能な英語音声を毎回取り直す。iPad対策として「保存した声」に頼りすぎない。
-        function refreshVoices() {
-            if (typeof speechSynthesis === 'undefined') return null;
+      // iPad対策：黒塗り部分はタップでも表示できるようにする
+      document.querySelectorAll('.mask-text').forEach(el => {
+        el.addEventListener('click', () => el.classList.toggle('revealed'));
+      });
 
-            const voices = speechSynthesis.getVoices();
-            englishVoice =
-                voices.find(v => v.lang === 'en-US' && /Google|Samantha|Alex|Microsoft/i.test(v.name)) ||
-                voices.find(v => v.lang === 'en-US') ||
-                voices.find(v => v.lang === 'en-GB') ||
-                voices.find(v => v.lang && v.lang.startsWith('en')) ||
-                null;
+      document.getElementById('progress-text').innerText = `Sentence: ${currentIndex + 1} / ${sentences.length}`;
+      document.getElementById('mode-hint').innerText = hints[currentMode];
+      document.getElementById('btn-prev').disabled = currentIndex === 0;
+      document.getElementById('btn-next').disabled = currentIndex === sentences.length - 1;
+      document.getElementById('btn-prev').classList.toggle('opacity-40', currentIndex === 0);
+      document.getElementById('btn-next').classList.toggle('opacity-40', currentIndex === sentences.length - 1);
+      resetRecorder();
+    }
 
-            return englishVoice;
+    function switchMode(mode) {
+      currentMode = mode;
+      ['normal', 'slash', 'mask'].forEach(m => {
+        const btn = document.getElementById(`btn-${m}`);
+        if (m === mode) {
+          btn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-white shadow-sm text-indigo-600 transition";
+        } else {
+          btn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition";
         }
+      });
+      stopTTS();
+      updateDisplay();
+    }
 
-        function getBestEnglishVoice() {
-            return refreshVoices();
-        }
+    function nextSentence() {
+      if (currentIndex < sentences.length - 1) {
+        currentIndex++;
+        stopTTS();
+        updateDisplay();
+      }
+    }
 
-        function updateDisplay() {
-            const display = document.getElementById('text-display');
-            display.innerHTML = sentences[currentIndex][currentMode];
+    function prevSentence() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        stopTTS();
+        updateDisplay();
+      }
+    }
 
-            document.getElementById('progress-text').innerText = `Sentence: ${currentIndex + 1} / ${sentences.length}`;
-            document.getElementById('mode-hint').innerText = hints[currentMode];
+    function updateSpeedLabel() {
+      const speed = Number(document.getElementById('speed-range').value);
+      document.getElementById('speed-label').innerText = speed.toFixed(2).replace(/0$/, '') + 'x';
+    }
 
-            document.getElementById('btn-prev').disabled = currentIndex === 0;
-            document.getElementById('btn-next').disabled = currentIndex === sentences.length - 1;
+    function playTTS() {
+      if (!('speechSynthesis' in window)) {
+        alert('お使いのブラウザは音声合成に対応していません。');
+        return;
+      }
 
-            resetRecorder();
-        }
+      speechSynthesis.cancel();
+      if (speechSynthesis.paused) speechSynthesis.resume();
 
-        function switchMode(mode) {
-            currentMode = mode;
-            ['normal', 'slash', 'mask'].forEach(m => {
-                const btn = document.getElementById(`btn-${m}`);
-                if (m === mode) {
-                    btn.className = "flex-1 py-2 text-sm font-medium rounded-lg bg-white shadow-sm text-indigo-600 transition";
-                } else {
-                    btn.className = "flex-1 py-2 text-sm font-medium rounded-lg text-slate-600 hover:text-slate-900 transition";
-                }
-            });
-            updateDisplay();
-        }
+      const textToSpeak = sentences[currentIndex].normal;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      const voice = chooseEnglishVoice();
+      if (voice) utterance.voice = voice;
+      utterance.lang = voice && voice.lang ? voice.lang : 'en-US';
+      utterance.rate = Number(document.getElementById('speed-range').value);
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
 
-        function nextSentence() {
-            if (currentIndex < sentences.length - 1) {
-                currentIndex++;
-                stopTTS();
-                updateDisplay();
-            }
-        }
+      utterance.onerror = (event) => {
+        console.warn('Speech synthesis error:', event.error);
+      };
 
-        function prevSentence() {
-            if (currentIndex > 0) {
-                currentIndex--;
-                stopTTS();
-                updateDisplay();
-            }
-        }
+      // iPad/Safariで止まったままになる場合の保険
+      speechSynthesis.speak(utterance);
+      setTimeout(() => {
+        if (speechSynthesis.paused) speechSynthesis.resume();
+      }, 150);
+    }
 
-        // 🔥 【最重要修正】スマホのセキュリティ制限を直接突破する再生ロジック
-        function playTTS() {
-            if (typeof speechSynthesis === 'undefined') {
-                alert("お使いのブラウザは音声合成に対応していません。");
-                return;
-            }
+    function stopTTS() {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+      }
+    }
 
-            // キューの完全リセット
-            speechSynthesis.cancel();
+    async function toggleRecording() {
+      const btn = document.getElementById('btn-record');
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('このブラウザでは録音機能が使えません。');
+        return;
+      }
 
-            const textToSpeak = sentences[currentIndex].normal;
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            
-            // あらかじめ取得しておいた英語の声をセット
-            if (englishVoice) {
-                utterance.voice = englishVoice;
-            }
-            utterance.lang = 'en-US';
-            utterance.rate = 0.85; 
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
 
-            // 【重要】setTimeoutなどの非同期を一切挟まず、クリックイベント直下で即座に呼び出す
-            speechSynthesis.speak(utterance);
-        }
+          mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) audioChunks.push(event.data);
+          };
 
-        function stopTTS() {
-            if (typeof speechSynthesis !== 'undefined') {
-                speechSynthesis.cancel();
-            }
-        }
-
-        // 録音機能
-        async function toggleRecording() {
-            const btn = document.getElementById('btn-record');
-            
-            if (!mediaRecorder || mediaRecorder.state === "inactive") {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-
-                    mediaRecorder.ondataavailable = event => {
-                        audioChunks.push(event.data);
-                    };
-
-                    mediaRecorder.onstop = () => {
-                        audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                        audioUrl = URL.createObjectURL(audioBlob);
-                        const playBtn = document.getElementById('btn-play-record');
-                        playBtn.disabled = false;
-                        playBtn.className = "bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-2 rounded-lg text-sm font-semibold transition";
-                    };
-
-                    mediaRecorder.start();
-                    btn.innerText = "■ 停止";
-                    btn.className = "bg-slate-800 hover:bg-slate-950 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition animate-pulse";
-                } catch (err) {
-                    alert("マイクのアクセスが拒否されたか、マイクが見つかりません。");
-                    console.error(err);
-                }
-            } else {
-                mediaRecorder.stop();
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                btn.innerText = "● 録音";
-                btn.className = "bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition";
-            }
-        }
-
-        function playRecordedAudio() {
-            if (audioUrl) {
-                const audio = new Audio(audioUrl);
-                audio.play();
-            }
-        }
-
-        function resetRecorder() {
-            audioUrl = null;
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            if (audioUrl) URL.revokeObjectURL(audioUrl);
+            audioUrl = URL.createObjectURL(audioBlob);
             const playBtn = document.getElementById('btn-play-record');
-            if(playBtn) {
-                playBtn.disabled = true;
-                playBtn.className = "bg-slate-200 text-slate-400 px-3 py-2 rounded-lg text-sm font-semibold transition cursor-not-allowed";
-            }
+            playBtn.disabled = false;
+            playBtn.className = 'bg-rose-100 hover:bg-rose-200 text-rose-700 px-4 py-2 rounded-lg text-sm font-semibold transition';
+          };
+
+          mediaRecorder.start();
+          btn.innerText = '■ 停止';
+          btn.className = 'bg-slate-800 hover:bg-slate-950 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition animate-pulse';
+        } catch (err) {
+          alert('マイクのアクセスが拒否されたか、マイクが見つかりません。');
+          console.error(err);
         }
-    </script>
+      } else {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        btn.innerText = '● 録音';
+        btn.className = 'bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-lg text-sm font-semibold shadow transition';
+      }
+    }
+
+    function playRecordedAudio() {
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        audio.play().catch(err => {
+          alert('録音音声を再生できませんでした。');
+          console.error(err);
+        });
+      }
+    }
+
+    function resetRecorder() {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        audioUrl = null;
+      }
+      const playBtn = document.getElementById('btn-play-record');
+      if (playBtn) {
+        playBtn.disabled = true;
+        playBtn.className = 'bg-slate-200 text-slate-400 px-4 py-2 rounded-lg text-sm font-semibold transition cursor-not-allowed';
+      }
+    }
+  </script>
 </body>
 </html>
